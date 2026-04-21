@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STK LAB // R&amp;D DIVISION</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Space Grotesk', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg:            #09090b;
+      --surface:       rgba(255,255,255,0.028);
+      --border:        rgba(255,255,255,0.07);
+      --border-accent: rgba(34,211,238,0.18);
+      --accent:        #22d3ee;
+      --emerald:       #10b981;
+      --text-1:        #f4f4f5;
+      --text-2:        #a1a1aa;
+      --text-muted:    #52525b;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: 'Space Grotesk', sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+    /* Noise overlay */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999;
+    }
+
+    /* ── Scroll progress ── */
+    #progress {
+      position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+      background: linear-gradient(90deg, var(--emerald), var(--accent));
+      z-index: 9998;
+      transition: width 0.1s linear;
+      box-shadow: 0 0 8px rgba(34,211,238,0.6);
+    }
+
+    /* ── Grid background ── */
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(34,211,238,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,211,238,0.03) 1px, transparent 1px);
+      background-size: 64px 64px;
+    }
+
+    .container { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
+
+    /* ── Navbar ── */
+    #nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 20px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: background 0.4s ease, padding 0.3s ease, border-color 0.4s ease;
+    }
+    #nav.solid {
+      background: rgba(9,9,11,0.88);
+      backdrop-filter: blur(20px) saturate(1.2);
+      -webkit-backdrop-filter: blur(20px) saturate(1.2);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 32px;
+    }
+    .logo { font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:.1em; color:var(--text-1); text-decoration:none; }
+    .logo em { color:var(--accent); font-style:normal; }
+    .nav-links { display:flex; align-items:center; gap:36px; list-style:none; }
+    .nav-links a { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.09em; color:var(--text-2); text-decoration:none; transition:color .2s ease; }
+    .nav-links a:hover { color:var(--text-1); }
+    .nav-divider { width:1px; height:14px; background:var(--border); }
+
+    /* ── Lang switcher ── */
+    .lang-switcher { display:flex; align-items:center; border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+    .lang-btn { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.1em; padding:5px 10px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; transition:all .2s ease; }
+    .lang-btn.active { background:var(--accent); color:#09090b; }
+    .lang-btn:not(.active):hover { color:var(--text-1); }
+
+    /* ── Buttons ── */
+    .btn { font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.07em; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:8px; transition:all .3s cubic-bezier(.16,1,.3,1); position:relative; overflow:hidden; }
+    .btn:active { transform:scale(.97); }
+
+    .btn-outline { padding:9px 22px; border:1px solid var(--border-accent); color:var(--accent); }
+    .btn-outline::before { content:''; position:absolute; inset:0; background:var(--accent); transform:translateY(101%); transition:transform .3s cubic-bezier(.16,1,.3,1); }
+    .btn-outline:hover::before { transform:translateY(0); }
+    .btn-outline:hover { color:#09090b; }
+    .btn-outline span { position:relative; z-index:1; }
+
+    .btn-hero { padding:14px 32px; border:1px solid var(--border-accent); color:var(--accent); font-size:13px; }
+    .btn-hero::before { content:''; position:absolute; inset:0; background:var(--accent); transform:translateY(101%); transition:transform .35s cubic-bezier(.16,1,.3,1); }
+    .btn-hero:hover::before { transform:translateY(0); }
+    .btn-hero:hover { color:#09090b; }
+    .btn-hero span { position:relative; z-index:1; }
+
+    .btn-terminal { padding:16px 40px; border:1px solid rgba(34,211,238,.28); color:var(--accent); font-size:13px; background:rgba(34,211,238,.04); width:100%; justify-content:center; letter-spacing:.1em; }
+    .btn-terminal:hover { background:rgba(34,211,238,.1); border-color:var(--accent); }
+
+    /* ── Labels ── */
+    .label { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.15em; color:var(--accent); opacity:.75; display:block; margin-bottom:20px; }
+
+    /* ── Cards ── */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:10px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 24px 48px -16px rgba(0,0,0,.5);
+      transition:border-color .35s ease, box-shadow .35s ease; position:relative; overflow:hidden; }
+    .card:hover { border-color:rgba(34,211,238,.16); box-shadow:inset 0 1px 0 rgba(34,211,238,.07), 0 24px 48px -16px rgba(0,0,0,.6); }
+    .card::after { content:''; position:absolute; inset:0; background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(34,211,238,.06) 0%, transparent 55%); opacity:0; transition:opacity .3s ease; pointer-events:none; border-radius:inherit; }
+    .card:hover::after { opacity:1; }
+
+    /* ── Pulse dot ── */
+    .pulse { width:6px; height:6px; border-radius:50%; background:var(--emerald); animation:pulse-anim 2.2s ease-in-out infinite; flex-shrink:0; }
+    @keyframes pulse-anim { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.75)} }
+
+    /* ── Cursor blink ── */
+    .cursor { display:inline-block; width:2px; height:1em; background:var(--accent); margin-left:2px; vertical-align:text-bottom; animation:blink 1s step-end infinite; }
+    @keyframes blink { 50%{opacity:0} }
+
+    /* ── Scroll reveal ── */
+    .reveal { opacity:0; transform:translateY(22px); transition:opacity .75s cubic-bezier(.16,1,.3,1), transform .75s cubic-bezier(.16,1,.3,1); }
+    .reveal.in { opacity:1; transform:translateY(0); }
+    .d1{transition-delay:.08s} .d2{transition-delay:.16s} .d3{transition-delay:.24s} .d4{transition-delay:.32s} .d5{transition-delay:.42s}
+
+    /* ── Tags ── */
+    .tag { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.12em; padding:3px 10px; border-radius:3px; display:inline-block; }
+    .tag-red     { background:rgba(239,68,68,.1);  border:1px solid rgba(239,68,68,.2);  color:#f87171; }
+    .tag-cyan    { background:rgba(34,211,238,.08); border:1px solid rgba(34,211,238,.2); color:var(--accent); }
+    .tag-emerald { background:rgba(16,185,129,.08); border:1px solid rgba(16,185,129,.22);color:var(--emerald); }
+
+    /* ── Tech items ── */
+    .tech-item { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-2); padding:15px 18px; border:1px solid var(--border); border-radius:5px; display:flex; align-items:center; gap:12px; transition:all .3s cubic-bezier(.16,1,.3,1); }
+    .tech-item:hover { border-color:rgba(34,211,238,.22); color:var(--text-1); background:rgba(34,211,238,.04); }
+    .tech-item .pr { color:var(--emerald); }
+
+    /* ── Ambient orbs ── */
+    .orb { position:absolute; border-radius:50%; pointer-events:none; }
+    .orb-1 { width:600px; height:600px; top:5%; right:-10%; background:radial-gradient(circle, rgba(34,211,238,.07) 0%, transparent 65%); animation:float-1 12s ease-in-out infinite; }
+    .orb-2 { width:400px; height:400px; top:40%; right:20%; background:radial-gradient(circle, rgba(16,185,129,.05) 0%, transparent 65%); animation:float-2 9s ease-in-out infinite; }
+    .orb-3 { width:300px; height:300px; top:60%; left:5%; background:radial-gradient(circle, rgba(34,211,238,.04) 0%, transparent 65%); animation:float-3 14s ease-in-out infinite; }
+    @keyframes float-1 { 0%,100%{transform:translate(0,0) scale(1)} 40%{transform:translate(-30px,-40px) scale(1.06)} 70%{transform:translate(20px,-20px) scale(.96)} }
+    @keyframes float-2 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(25px,-35px) scale(1.08)} 66%{transform:translate(-15px,20px) scale(.94)} }
+    @keyframes float-3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(30px,-25px) scale(1.05)} }
+
+    /* ── Scanline sweep ── */
+    .scanline { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg, transparent, rgba(34,211,238,.25), transparent); pointer-events:none; animation:scan 6s linear infinite; }
+    @keyframes scan { 0%{top:-2px;opacity:0} 5%{opacity:1} 95%{opacity:.3} 100%{top:100%;opacity:0} }
+
+    /* ── Marquee ── */
+    .marquee-track { overflow:hidden; white-space:nowrap; }
+    .marquee-inner { display:inline-block; animation:marquee 30s linear infinite; }
+    .marquee-inner:hover { animation-play-state:paused; }
+    @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+    .marquee-sep { color:var(--accent); margin:0 20px; opacity:.5; }
+
+    /* ── Counter ── */
+    .counter-num { display:inline; }
+
+    /* ── Circuit SVG ── */
+    .circuit-wrap { position:absolute; right:0; top:50%; transform:translateY(-50%); width:52%; height:90%; pointer-events:none; opacity:.18; }
+    @media(max-width:900px){ .circuit-wrap{display:none;} }
+
+    /* ── Animated circuit trace ── */
+    .trace-flow { stroke-dasharray:12 60; animation:trace-anim 4s linear infinite; }
+    .trace-flow-2 { stroke-dasharray:8 80; animation:trace-anim 6s linear infinite reverse; }
+    .trace-flow-3 { stroke-dasharray:15 40; animation:trace-anim 3s linear infinite; animation-delay:-1s; }
+    @keyframes trace-anim { from{stroke-dashoffset:0} to{stroke-dashoffset:-144} }
+
+    /* ── Glowing stat border ── */
+    .stat-glow { position:relative; }
+    .stat-glow::before { content:''; position:absolute; inset:-1px; border-radius:11px; background:linear-gradient(135deg, rgba(34,211,238,.2), rgba(16,185,129,.1), transparent); z-index:-1; }
+
+    /* ── Active CTEM block glow ── */
+    .ctem-active-glow { box-shadow: 0 0 0 1px rgba(16,185,129,.25), 0 0 40px rgba(16,185,129,.06); }
+
+    /* ── Responsive ── */
+    @media(max-width:768px) {
+      .container{padding:0 20px}
+      .nav-links{display:none}
+      .two-col{grid-template-columns:1fr !important; gap:48px !important}
+      .ctem-block{grid-template-columns:100px 1fr !important}
+      .tech-2col{grid-template-columns:1fr !important}
+      #nav{padding:16px 20px}
+      .marquee-inner{animation-duration:20s}
+    }
+
+    section { border-top:1px solid var(--border); }
+  </style>
+</head>
+<body style="background:#09090b; min-height:100vh;">
+
+<!-- Scroll progress -->
+<div id="progress"></div>
+
+<!-- ════════════ NAVBAR ════════════ -->
+<nav id="nav">
+  <a href="#" class="logo">[ STK_LAB ] <em>// R&amp;D DIVISION</em></a>
+  <div style="display:flex; align-items:center; gap:16px;">
+    <ul class="nav-links">
+      <li><a href="#research" data-i18n="nav.research">Research</a></li>
+      <li><a href="#technologies" data-i18n="nav.technologies">Technologies</a></li>
+      <li><a href="#projects" data-i18n="nav.projects">Projects</a></li>
+      <li><div class="nav-divider"></div></li>
+      <li>
+        <a href="#b2b" class="btn btn-outline">
+          <span data-i18n="nav.b2b">B2B Access</span>
+        </a>
+      </li>
+    </ul>
+    <div class="lang-switcher">
+      <button class="lang-btn active" onclick="setLang('en')" id="btn-en">EN</button>
+      <button class="lang-btn" onclick="setLang('sk')" id="btn-sk">SK</button>
+    </div>
+  </div>
+</nav>
+
+
+<!-- ════════════ HERO ════════════ -->
+<section id="research" style="min-height:100dvh; display:flex; align-items:center; position:relative; overflow:hidden;" class="grid-bg">
+
+  <!-- Canvas particles -->
+  <canvas id="canvas" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none;"></canvas>
+
+  <!-- Scanline sweep -->
+  <div class="scanline"></div>
+
+  <!-- Ambient orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- Circuit SVG decoration -->
+  <div class="circuit-wrap">
+    <svg viewBox="0 0 560 480" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+      <!-- Grid reference lines -->
+      <line x1="80" y1="0" x2="80" y2="480" stroke="rgba(34,211,238,1)" stroke-width=".5" opacity=".4"/>
+      <line x1="200" y1="0" x2="200" y2="480" stroke="rgba(34,211,238,1)" stroke-width=".5" opacity=".3"/>
+      <line x1="320" y1="0" x2="320" y2="480" stroke="rgba(34,211,238,1)" stroke-width=".5" opacity=".3"/>
+      <line x1="440" y1="0" x2="440" y2="480" stroke="rgba(34,211,238,1)" stroke-width=".5" opacity=".3"/>
+      <line x1="0" y1="80" x2="560" y2="80" stroke="rgba(34,211,238,1)" stroke-width=".5" opacity=".3"/>
+      <line x1="0" y1="200" x2="560" y2="200" stroke="rgba(34,211,238,1)" stroke-width=".5" opacity=".3"/>
+      <line x1="0" y1="320" x2="560" y2="320" stroke="rgba(34,211,238,1)" stroke-width=".5" opacity=".3"/>
+      <line x1="0" y1="400" x2="560" y2="400" stroke="rgba(34,211,238,1)" stroke-width=".5" opacity=".3"/>
+
+      <!-- Main PCB traces -->
+      <path d="M0,80 H80 V200 H200 V80 H320 V160 H440 V80 H560" stroke="rgba(34,211,238,1)" stroke-width="1.5"/>
+      <path d="M80,200 V320 H200 V240 H320 V320 H440 V200" stroke="rgba(34,211,238,1)" stroke-width="1.5"/>
+      <path d="M0,320 H80 V400 H200 V320 H320 V400 H440 V320 H560" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <path d="M200,80 V0" stroke="rgba(34,211,238,1)" stroke-width="1.5"/>
+      <path d="M320,320 V400 H560" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <path d="M440,400 V480" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <path d="M80,400 V480" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+
+      <!-- IC chip outlines -->
+      <rect x="110" y="110" width="80" height="60" rx="2" stroke="rgba(34,211,238,1)" stroke-width="1.5" fill="rgba(34,211,238,.04)"/>
+      <rect x="230" y="220" width="80" height="60" rx="2" stroke="rgba(34,211,238,1)" stroke-width="1.5" fill="rgba(34,211,238,.04)"/>
+      <rect x="350" y="110" width="80" height="120" rx="2" stroke="rgba(34,211,238,1)" stroke-width="1.5" fill="rgba(34,211,238,.04)"/>
+      <rect x="110" y="330" width="60" height="50" rx="2" stroke="rgba(16,185,129,1)" stroke-width="1.5" fill="rgba(16,185,129,.04)"/>
+      <rect x="350" y="330" width="80" height="50" rx="2" stroke="rgba(34,211,238,1)" stroke-width="1.5" fill="rgba(34,211,238,.03)"/>
+
+      <!-- IC pin marks -->
+      <line x1="110" y1="130" x2="95" y2="130" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <line x1="110" y1="150" x2="95" y2="150" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <line x1="190" y1="130" x2="205" y2="130" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <line x1="190" y1="150" x2="205" y2="150" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <line x1="230" y1="240" x2="215" y2="240" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <line x1="230" y1="260" x2="215" y2="260" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <line x1="310" y1="240" x2="325" y2="240" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <line x1="310" y1="260" x2="325" y2="260" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+
+      <!-- Via circles (connection points) -->
+      <circle cx="80"  cy="80"  r="4" fill="rgba(34,211,238,.6)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <circle cx="200" cy="80"  r="4" fill="rgba(34,211,238,.6)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <circle cx="320" cy="80"  r="4" fill="rgba(34,211,238,.6)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <circle cx="440" cy="80"  r="4" fill="rgba(34,211,238,.6)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <circle cx="80"  cy="200" r="4" fill="rgba(34,211,238,.6)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <circle cx="200" cy="200" r="4" fill="rgba(34,211,238,.6)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <circle cx="320" cy="200" r="4" fill="rgba(34,211,238,.6)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <circle cx="440" cy="200" r="4" fill="rgba(34,211,238,.6)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <circle cx="80"  cy="320" r="4" fill="rgba(34,211,238,.6)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <circle cx="200" cy="320" r="4" fill="rgba(34,211,238,.6)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <circle cx="320" cy="320" r="4" fill="rgba(16,185,129,.7)" stroke="rgba(16,185,129,1)" stroke-width="1"/>
+      <circle cx="440" cy="320" r="4" fill="rgba(34,211,238,.6)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <circle cx="80"  cy="400" r="3" fill="rgba(34,211,238,.5)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <circle cx="200" cy="400" r="3" fill="rgba(34,211,238,.5)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+      <circle cx="320" cy="400" r="3" fill="rgba(16,185,129,.6)" stroke="rgba(16,185,129,1)" stroke-width="1"/>
+      <circle cx="440" cy="400" r="3" fill="rgba(34,211,238,.5)" stroke="rgba(34,211,238,1)" stroke-width="1"/>
+
+      <!-- Animated current traces (cyan) -->
+      <path class="trace-flow" d="M0,80 H80 V200 H200 V80 H320 V160 H440 V80 H560" stroke="rgba(34,211,238,1)" stroke-width="2" fill="none"/>
+      <path class="trace-flow-2" d="M80,200 V320 H200 V240 H320 V320 H440 V200" stroke="rgba(34,211,238,1)" stroke-width="1.5" fill="none"/>
+      <path class="trace-flow-3" d="M110,330 H80 V400 H200 V320 H320 V400" stroke="rgba(16,185,129,1)" stroke-width="1.5" fill="none"/>
+
+      <!-- Component labels -->
+      <text x="138" y="145" font-family="monospace" font-size="9" fill="rgba(34,211,238,.7)" text-anchor="middle">NDIR</text>
+      <text x="270" y="255" font-family="monospace" font-size="9" fill="rgba(34,211,238,.7)" text-anchor="middle">MCU</text>
+      <text x="390" y="172" font-family="monospace" font-size="8" fill="rgba(34,211,238,.7)" text-anchor="middle">CAN BUS</text>
+      <text x="140" y="360" font-family="monospace" font-size="8" fill="rgba(16,185,129,.7)" text-anchor="middle">O₂</text>
+      <text x="390" y="360" font-family="monospace" font-size="8" fill="rgba(34,211,238,.6)" text-anchor="middle">NOx</text>
+    </svg>
+  </div>
+
+  <!-- Radial fade overlay -->
+  <div style="position:absolute; inset:0; background:radial-gradient(ellipse 60% 60% at 70% 45%, transparent 0%, #09090b 68%); pointer-events:none;"></div>
+  <div style="position:absolute; bottom:0; left:0; right:0; height:220px; background:linear-gradient(transparent,#09090b); pointer-events:none;"></div>
+
+  <div class="container" style="position:relative; z-index:1; padding-top:140px; padding-bottom:100px; width:100%;">
+
+    <div class="reveal" style="display:flex; align-items:center; gap:12px; margin-bottom:44px;">
+      <div class="pulse"></div>
+      <span style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.14em; color:var(--text-muted);" data-i18n="hero.status">ACTIVE RESEARCH · 2026</span>
+    </div>
+
+    <h1 class="reveal d1" style="font-size:clamp(2.6rem,5.5vw,4.2rem); font-weight:700; letter-spacing:-.04em; line-height:1.04; max-width:680px; margin-bottom:28px;" data-i18n="hero.h1">
+      Applied research<br/>
+      and telemetry integration<br/>
+      for advanced<br/>
+      <span style="color:var(--accent);">combustion systems.</span>
+    </h1>
+
+    <p class="reveal d2" style="font-size:16px; line-height:1.75; color:var(--text-2); max-width:520px; margin-bottom:44px;" data-i18n="hero.sub">
+      We are a technology laboratory combining deep data analysis with everyday automotive reality. We develop and calibrate next-generation diagnostic systems for real-time hydrocarbon analysis.
+    </p>
+
+    <div class="reveal d3">
+      <a href="#b2b" class="btn btn-hero">
+        <span data-i18n="hero.cta">Initiate B2B Communication</span>
+        <span style="position:relative;z-index:1;">→</span>
+      </a>
+    </div>
+
+    <!-- Stats row -->
+    <div class="reveal d4" style="margin-top:64px; padding-top:40px; border-top:1px solid var(--border); display:flex; gap:0; width:fit-content;">
+      <div style="padding-right:44px; border-right:1px solid var(--border);">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:2.6rem; font-weight:600; line-height:1; margin-bottom:8px;">
+          <span class="counter-num" data-target="10" data-suffix="k">0</span><span style="color:var(--accent);">+</span>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); letter-spacing:.08em;" data-i18n="hero.stat1">Analyzed samples</div>
+      </div>
+      <div style="padding:0 44px; border-right:1px solid var(--border);">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:2rem; font-weight:600; line-height:1; margin-bottom:8px; letter-spacing:.04em;">NDIR</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); letter-spacing:.08em;" data-i18n="hero.stat2">OIML Class 0 standards</div>
+      </div>
+      <div style="padding-left:44px;">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:2rem; font-weight:600; line-height:1; margin-bottom:8px; color:var(--emerald);">LIVE</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); letter-spacing:.08em;" data-i18n="hero.stat3">Real-time CAN bus data</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ MARQUEE STRIP ════════════ -->
+<div style="border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:13px 0; background:rgba(34,211,238,.015); overflow:hidden;">
+  <div class="marquee-track">
+    <div class="marquee-inner" style="font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.12em; color:var(--text-muted);">
+      <span>PCB PROTOTYPING</span><span class="marquee-sep">·</span>
+      <span>NDIR SENSOR INTEGRATION</span><span class="marquee-sep">·</span>
+      <span>CAN BUS TELEMETRY</span><span class="marquee-sep">·</span>
+      <span>FIRMWARE DEVELOPMENT</span><span class="marquee-sep">·</span>
+      <span>RAW SIGNAL PROCESSING</span><span class="marquee-sep">·</span>
+      <span>OEM COMPONENT SOURCING</span><span class="marquee-sep">·</span>
+      <span>OIML CLASS 0 CALIBRATION</span><span class="marquee-sep">·</span>
+      <span>PREDICTIVE ENGINE ANALYTICS</span><span class="marquee-sep">·</span>
+      <span style="color:var(--accent);">STK_LAB // R&amp;D</span><span class="marquee-sep">·</span>
+      <span>PCB PROTOTYPING</span><span class="marquee-sep">·</span>
+      <span>NDIR SENSOR INTEGRATION</span><span class="marquee-sep">·</span>
+      <span>CAN BUS TELEMETRY</span><span class="marquee-sep">·</span>
+      <span>FIRMWARE DEVELOPMENT</span><span class="marquee-sep">·</span>
+      <span>RAW SIGNAL PROCESSING</span><span class="marquee-sep">·</span>
+      <span>OEM COMPONENT SOURCING</span><span class="marquee-sep">·</span>
+      <span>OIML CLASS 0 CALIBRATION</span><span class="marquee-sep">·</span>
+      <span>PREDICTIVE ENGINE ANALYTICS</span><span class="marquee-sep">·</span>
+      <span style="color:var(--accent);">STK_LAB // R&amp;D</span><span class="marquee-sep">·</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════ ZÁZEMIE ════════════ -->
+<section style="padding:120px 0; position:relative; overflow:hidden;">
+  <!-- subtle orb -->
+  <div style="position:absolute; top:-100px; right:-200px; width:500px; height:500px; background:radial-gradient(circle, rgba(34,211,238,.04) 0%, transparent 65%); pointer-events:none; border-radius:50%;"></div>
+  <div class="container">
+    <div class="two-col" style="display:grid; grid-template-columns:320px 1fr; gap:100px; align-items:start;">
+      <div>
+        <span class="label reveal" data-i18n="about.label">// 01 — Infrastructure</span>
+        <h2 class="reveal d1" style="font-size:clamp(2rem,3.5vw,2.8rem); font-weight:600; letter-spacing:-.035em; line-height:1.1;" data-i18n="about.h2">Infrastructure<br/>&amp; Capabilities</h2>
+      </div>
+      <div>
+        <p class="reveal" style="font-size:17px; line-height:1.8; color:var(--text-2); margin-bottom:56px; max-width:600px;" data-i18n="about.body">
+          Thanks to our connection to an extensive testing and certification infrastructure — High-throughput testing facility — we have daily access to hundreds of real-world test scenarios. This allows us to push the boundaries of conventional vehicle inspection and emissions diagnostics toward developing our own high-sensitivity hardware modules.
+        </p>
+        <!-- Inline stats bar -->
+        <div class="reveal d1 stat-glow" style="display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--border); border-radius:10px; overflow:hidden;">
+          <div style="padding:28px 24px; border-right:1px solid var(--border); background:var(--surface);">
+            <div style="font-family:'JetBrains Mono',monospace; font-size:2rem; font-weight:600; margin-bottom:8px;"><span class="counter-num" data-target="10" data-suffix="k">0</span><span style="color:var(--accent);">+</span></div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); letter-spacing:.07em; line-height:1.5;" data-i18n="about.s1">Samples analyzed<br/>per year</div>
+          </div>
+          <div style="padding:28px 24px; border-right:1px solid var(--border); background:var(--surface);">
+            <div style="font-family:'JetBrains Mono',monospace; font-size:1.5rem; font-weight:600; margin-bottom:8px; letter-spacing:.04em;">OIML</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); letter-spacing:.07em; line-height:1.5;" data-i18n="about.s2">Class 0<br/>certification standard</div>
+          </div>
+          <div style="padding:28px 24px; background:var(--surface);">
+            <div style="font-family:'JetBrains Mono',monospace; font-size:1.5rem; font-weight:600; margin-bottom:8px; color:var(--emerald);">Real-time</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); letter-spacing:.07em; line-height:1.5;" data-i18n="about.s3">Live CAN bus<br/>data collection</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ PROJEKT CTEM ════════════ -->
+<section id="projects" style="padding:120px 0; background:rgba(34,211,238,.012); position:relative; overflow:hidden;">
+  <div style="position:absolute; bottom:-150px; left:-100px; width:500px; height:500px; background:radial-gradient(circle, rgba(16,185,129,.05) 0%, transparent 65%); pointer-events:none; border-radius:50%;"></div>
+  <div class="container">
+    <div style="margin-bottom:80px;">
+      <span class="label reveal" data-i18n="ctem.label">// 02 — Active Research</span>
+      <h2 class="reveal d1" style="font-size:clamp(2rem,3.5vw,2.8rem); font-weight:600; letter-spacing:-.035em; line-height:1.1; margin-bottom:16px;">Project CTEM</h2>
+      <p class="reveal d2" style="font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--accent); letter-spacing:.06em; opacity:.8;" data-i18n="ctem.sub">
+        Compact Telemetric Emissions Module (Portable Emissions Measurement System)
+      </p>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:0;">
+      <!-- Block 01 -->
+      <div class="reveal ctem-block" style="display:grid; grid-template-columns:200px 1fr; border:1px solid var(--border); border-radius:10px 10px 0 0; overflow:hidden;">
+        <div style="padding:40px 32px; background:rgba(239,68,68,.04); border-right:1px solid var(--border); display:flex; flex-direction:column; justify-content:space-between;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:3rem; font-weight:700; color:rgba(248,113,113,.12); line-height:1;">01</span>
+          <span class="tag tag-red" data-i18n="ctem.tag1">PROBLEM</span>
+        </div>
+        <div style="padding:40px 48px; background:var(--surface);">
+          <p style="font-size:16px; line-height:1.8; color:var(--text-2); max-width:680px;" data-i18n="ctem.b1">
+            Current stationary analyzers — at the standard of <strong style="color:var(--text-1); font-weight:500;">AVL DITEST</strong> — are too bulky and closed for mobile applications and direct software integration into proprietary test benches.
+          </p>
+        </div>
+      </div>
+      <!-- Block 02 -->
+      <div class="reveal d1 ctem-block" style="display:grid; grid-template-columns:200px 1fr; border:1px solid var(--border); border-top:none; overflow:hidden;">
+        <div style="padding:40px 32px; background:rgba(34,211,238,.03); border-right:1px solid var(--border); display:flex; flex-direction:column; justify-content:space-between;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:3rem; font-weight:700; color:rgba(34,211,238,.1); line-height:1;">02</span>
+          <span class="tag tag-cyan" data-i18n="ctem.tag2">SOLUTION</span>
+        </div>
+        <div style="padding:40px 48px; background:var(--surface);">
+          <p style="font-size:16px; line-height:1.8; color:var(--text-2); max-width:680px;" data-i18n="ctem.b2">
+            We are prototyping an ultra-compact emissions module. We focus on developing our own control PCB and firmware for real-time gas composition data collection —
+            <span style="font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--accent);">CO, CO₂, HC, O₂, NOx</span>.
+          </p>
+        </div>
+      </div>
+      <!-- Block 03 – active glow -->
+      <div class="reveal d2 ctem-block ctem-active-glow" style="display:grid; grid-template-columns:200px 1fr; border:1px solid rgba(16,185,129,.22); border-top:none; border-radius:0 0 10px 10px; overflow:hidden;">
+        <div style="padding:40px 32px; background:rgba(16,185,129,.05); border-right:1px solid rgba(16,185,129,.14); display:flex; flex-direction:column; justify-content:space-between;">
+          <span style="font-family:'JetBrains Mono',monospace; font-size:3rem; font-weight:700; color:rgba(16,185,129,.14); line-height:1;">03</span>
+          <span class="tag tag-emerald" data-i18n="ctem.tag3">SOURCING</span>
+        </div>
+        <div style="padding:40px 48px; background:var(--surface);">
+          <p style="font-size:16px; line-height:1.8; color:var(--text-2); max-width:680px; margin-bottom:24px;" data-i18n="ctem.b3">
+            We are currently in the <strong style="color:var(--text-1); font-weight:500;">Hardware Prototyping &amp; OEM Component Sourcing</strong> phase. We are actively seeking bare OEM NDIR analyzers of highest precision for integration into our systems.
+          </p>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div class="pulse" style="width:5px; height:5px;"></div>
+            <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--emerald); letter-spacing:.1em;" data-i18n="ctem.active">Hardware Prototyping active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ TECHNOLÓGIE ════════════ -->
+<section id="technologies" style="padding:120px 0; position:relative; overflow:hidden;">
+  <div style="position:absolute; top:50%; right:-100px; transform:translateY(-50%); width:400px; height:400px; background:radial-gradient(circle, rgba(34,211,238,.04) 0%, transparent 65%); pointer-events:none; border-radius:50%;"></div>
+  <div class="container">
+    <div class="two-col" style="display:grid; grid-template-columns:320px 1fr; gap:100px; align-items:start;">
+      <div>
+        <span class="label reveal" data-i18n="tech.label">// 03 — Stack</span>
+        <h2 class="reveal d1" style="font-size:clamp(2rem,3.5vw,2.8rem); font-weight:600; letter-spacing:-.035em; line-height:1.1;" data-i18n="tech.h2">Technical<br/>Capabilities</h2>
+      </div>
+      <div class="tech-2col reveal d1" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <div class="tech-item"><span class="pr">&gt;</span> PCB Prototyping &amp; Layout</div>
+        <div class="tech-item"><span class="pr">&gt;</span> Real-time CAN bus telemetry</div>
+        <div class="tech-item"><span class="pr">&gt;</span> NDIR Sensor Integration</div>
+        <div class="tech-item"><span class="pr">&gt;</span> Raw Signal Processing</div>
+        <div class="tech-item"><span class="pr">&gt;</span> Predictive Engine Analytics</div>
+        <div class="tech-item"><span class="pr">&gt;</span> OEM Component Qualification</div>
+        <div class="tech-item"><span class="pr">&gt;</span> Firmware Development</div>
+        <div class="tech-item"><span class="pr">&gt;</span> OIML Class 0 Calibration</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════════════ B2B PORTAL ════════════ -->
+<section id="b2b" style="padding:120px 0; background:rgba(34,211,238,.012); position:relative; overflow:hidden;">
+  <!-- background circuit hint -->
+  <div style="position:absolute; inset:0; opacity:.03; background-image:linear-gradient(rgba(34,211,238,1) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,1) 1px,transparent 1px); background-size:32px 32px; pointer-events:none;"></div>
+  <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:600px; height:600px; background:radial-gradient(circle, rgba(34,211,238,.06) 0%, transparent 60%); pointer-events:none; border-radius:50%;"></div>
+
+  <div class="container" style="text-align:center; position:relative; z-index:1;">
+    <span class="label reveal" style="margin-bottom:24px;" data-i18n="b2b.label">// 04 — B2B Sourcing &amp; NDA Portal</span>
+    <h2 class="reveal d1" style="font-size:clamp(2rem,3.5vw,2.8rem); font-weight:600; letter-spacing:-.035em; line-height:1.1; margin-bottom:24px;" data-i18n="b2b.h2">B2B Sourcing<br/>&amp; NDA Portal</h2>
+    <p class="reveal d2" style="font-size:16px; line-height:1.75; color:var(--text-2); max-width:480px; margin:0 auto 60px;" data-i18n="b2b.body">
+      Due to the sensitive nature of our projects and strict non-disclosure agreements (NDA), we do not publicly share detailed technical drawings. For OEM component suppliers and engineering collaboration, please request access.
+    </p>
+
+    <div class="reveal d3" style="max-width:460px; margin:0 auto; border:1px solid rgba(34,211,238,.15); border-radius:10px; overflow:hidden; background:rgba(0,0,0,.35);">
+      <div style="padding:11px 18px; border-bottom:1px solid rgba(34,211,238,.1); display:flex; align-items:center; gap:7px; background:rgba(255,255,255,.02);">
+        <span style="width:10px; height:10px; border-radius:50%; background:rgba(239,68,68,.45); display:block;"></span>
+        <span style="width:10px; height:10px; border-radius:50%; background:rgba(234,179,8,.45); display:block;"></span>
+        <span style="width:10px; height:10px; border-radius:50%; background:rgba(34,197,94,.45); display:block;"></span>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); margin-left:10px; letter-spacing:.06em;">nda-portal.sh</span>
+      </div>
+      <div style="padding:28px 24px;">
+        <div style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-muted); margin-bottom:5px;"><span style="color:var(--accent);">$</span> init secure_channel --auth nda</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-muted); margin-bottom:5px;">▸ Verifying access level...</div>
+        <div style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--emerald); margin-bottom:28px; display:flex; align-items:center; gap:4px;">✓ Channel secured <span class="cursor"></span></div>
+        <a href="mailto:matejstachostk@gmail.com?subject=B2B%20Access%20Request%20%E2%80%93%20STK%20LAB&body=Hello%2C%0A%0AI%20am%20requesting%20access%20to%20the%20STK%20LAB%20B2B%20portal.%0A%0AName%20%2F%20Organization%3A%20%0APurpose%20of%20collaboration%3A%20%0A"
+           id="b2b-link" class="btn btn-terminal">
+          [ REQUEST SECURE ACCESS ]
+        </a>
+      </div>
+    </div>
+    <p class="reveal d4" style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); margin-top:24px; letter-spacing:.06em;">
+      Strictly for B2B component sourcing and authorized technical partners.
+    </p>
+  </div>
+</section>
+
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer style="border-top:1px solid var(--border); padding:22px 32px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+  <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); letter-spacing:.08em;">© 2026 [ STK_LAB ] // R&amp;D DIVISION</span>
+  <span style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); letter-spacing:.06em;" data-i18n="footer.nda">All technical data subject to NDA</span>
+</footer>
+
+
+<script>
+// ════════════ TRANSLATIONS ════════════
+const T = {
+  en: {
+    'nav.research':'Research','nav.technologies':'Technologies','nav.projects':'Projects','nav.b2b':'B2B Access',
+    'hero.status':'ACTIVE RESEARCH · 2026',
+    'hero.h1':'Applied research<br/>and telemetry integration<br/>for advanced<br/><span style="color:var(--accent);">combustion systems.</span>',
+    'hero.sub':'We are a technology laboratory combining deep data analysis with everyday automotive reality. We develop and calibrate next-generation diagnostic systems for real-time hydrocarbon analysis.',
+    'hero.cta':'Initiate B2B Communication',
+    'hero.stat1':'Analyzed samples','hero.stat2':'OIML Class 0 standards','hero.stat3':'Real-time CAN bus data',
+    'about.label':'// 01 — Infrastructure','about.h2':'Infrastructure<br/>&amp; Capabilities',
+    'about.body':'Thanks to our connection to an extensive testing and certification infrastructure — High-throughput testing facility — we have daily access to hundreds of real-world test scenarios. This allows us to push the boundaries of conventional vehicle inspection and emissions diagnostics toward developing our own high-sensitivity hardware modules.',
+    'about.s1':'Samples analyzed<br/>per year','about.s2':'Class 0<br/>certification standard','about.s3':'Live CAN bus<br/>data collection',
+    'ctem.label':'// 02 — Active Research',
+    'ctem.sub':'Compact Telemetric Emissions Module (Portable Emissions Measurement System)',
+    'ctem.tag1':'PROBLEM','ctem.tag2':'SOLUTION','ctem.tag3':'SOURCING',
+    'ctem.b1':'Current stationary analyzers — at the standard of <strong style="color:var(--text-1);font-weight:500;">AVL DITEST</strong> — are too bulky and closed for mobile applications and direct software integration into proprietary test benches.',
+    'ctem.b2':'We are prototyping an ultra-compact emissions module. We focus on developing our own control PCB and firmware for real-time gas composition data collection — <span style="font-family:\'JetBrains Mono\',monospace;font-size:14px;color:var(--accent);">CO, CO₂, HC, O₂, NOx</span>.',
+    'ctem.b3':'We are currently in the <strong style="color:var(--text-1);font-weight:500;">Hardware Prototyping &amp; OEM Component Sourcing</strong> phase. We are actively seeking bare OEM NDIR analyzers of highest precision for integration into our systems.',
+    'ctem.active':'Hardware Prototyping active',
+    'tech.label':'// 03 — Stack','tech.h2':'Technical<br/>Capabilities',
+    'b2b.label':'// 04 — B2B Sourcing &amp; NDA Portal','b2b.h2':'B2B Sourcing<br/>&amp; NDA Portal',
+    'b2b.body':'Due to the sensitive nature of our projects and strict non-disclosure agreements (NDA), we do not publicly share detailed technical drawings. For OEM component suppliers and engineering collaboration, please request access.',
+    'footer.nda':'All technical data subject to NDA',
+  },
+  sk: {
+    'nav.research':'Výskum','nav.technologies':'Technológie','nav.projects':'Projekty','nav.b2b':'B2B Prístup',
+    'hero.status':'AKTÍVNY VÝSKUM · 2026',
+    'hero.h1':'Aplikovaný výskum<br/>a integrácia telemetrie<br/>pre pokročilé<br/><span style="color:var(--accent);">spaľovacie systémy.</span>',
+    'hero.sub':'Sme technologické laboratórium spájajúce hĺbkovú analýzu dát s každodennou automobilovou realitou. Vyvíjame a kalibrujeme diagnostické systémy novej generácie pre real-time analýzu uhľovodíkov.',
+    'hero.cta':'Iniciovať B2B Komunikáciu',
+    'hero.stat1':'Analyzovaných vzoriek','hero.stat2':'OIML Class 0 štandardy','hero.stat3':'Zber CAN bus dát',
+    'about.label':'// 01 — Zázemie','about.h2':'Zázemie<br/>a Infraštruktúra',
+    'about.body':'Vďaka nášmu napojeniu na rozsiahlu testovaciu a certifikačnú infraštruktúru — High-throughput testing facility — máme denný prístup k stovkám testovacích scenárov v reálnych podmienkach. To nám umožňuje posúvať hranice klasickej STK a emisnej diagnostiky smerom k vývoju vlastných, vysokocitlivých hardvérových modulov.',
+    'about.s1':'Analyzovaných<br/>vzoriek ročne','about.s2':'Class 0<br/>certifikačný štandard','about.s3':'Zber a analýza<br/>CAN bus dát',
+    'ctem.label':'// 02 — Aktuálny výskum',
+    'ctem.sub':'Kompaktný telemetrický emisný modul (Portable Emissions Measurement System)',
+    'ctem.tag1':'PROBLÉM','ctem.tag2':'RIEŠENIE','ctem.tag3':'SOURCING',
+    'ctem.b1':'Súčasné stacionárne analyzátory — na úrovni štandardov <strong style="color:var(--text-1);font-weight:500;">AVL DITEST</strong> — sú pre mobilné aplikácie a priamu softvérovú integráciu do proprietárnych testovacích stolíc príliš robustné a uzavreté.',
+    'ctem.b2':'Prototypujeme ultrakompaktný emisný modul. Zameriavame sa na vývoj vlastného riadiaceho PCB a firmvéru pre real-time zber dát o zložení plynov — <span style="font-family:\'JetBrains Mono\',monospace;font-size:14px;color:var(--accent);">CO, CO₂, HC, O₂, NOx</span>.',
+    'ctem.b3':'Aktuálne sa nachádzame vo fáze <strong style="color:var(--text-1);font-weight:500;">Hardware Prototyping &amp; OEM Component Sourcing</strong>. Pre náš hardvér integrálne vyhľadávame holé OEM NDIR analyzátory najvyššej presnosti na osadenie do našich systémov.',
+    'ctem.active':'Hardware Prototyping aktívne',
+    'tech.label':'// 03 — Stack','tech.h2':'Technologické<br/>kapacity',
+    'b2b.label':'// 04 — B2B Sourcing &amp; NDA Portal','b2b.h2':'B2B Sourcing<br/>&amp; NDA Portal',
+    'b2b.body':'Vzhľadom na citlivú povahu našich projektov a prísne dohody o mlčanlivosti (NDA) neposkytujeme detailné technické výkresy verejne. Pre dodávateľov OEM komponentov a inžiniersku spoluprácu prosím požiadajte o prístup.',
+    'footer.nda':'Všetky technické dáta podliehajú NDA',
+  }
+};
+
+let currentLang = localStorage.getItem('stk-lang') || 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('stk-lang', lang);
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (T[lang][key] !== undefined) el.innerHTML = T[lang][key];
+  });
+  const b2b = document.getElementById('b2b-link');
+  if (lang === 'sk') {
+    b2b.href = 'mailto:matejstachostk@gmail.com?subject=Žiadosť%20o%20B2B%20prístup%20–%20STK%20LAB&body=Dobrý%20deň%2C%0A%0AŽiadam%20o%20prístup%20k%20B2B%20portálu%20STK%20LAB.%0A%0AMeno%20%2F%20Organizácia%3A%20%0AUčel%20spolupráce%3A%20%0A';
+  } else {
+    b2b.href = 'mailto:matejstachostk@gmail.com?subject=B2B%20Access%20Request%20%E2%80%93%20STK%20LAB&body=Hello%2C%0A%0AI%20am%20requesting%20access%20to%20the%20STK%20LAB%20B2B%20portal.%0A%0AName%20%2F%20Organization%3A%20%0APurpose%20of%20collaboration%3A%20%0A';
+  }
+  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+  document.getElementById('btn-sk').classList.toggle('active', lang === 'sk');
+}
+setLang(currentLang);
+
+// ════════════ NAVBAR SCROLL ════════════
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('solid', window.scrollY > 50);
+}, { passive: true });
+
+// ════════════ SCROLL PROGRESS ════════════
+const progressBar = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  progressBar.style.width = (window.scrollY / total * 100) + '%';
+}, { passive: true });
+
+// ════════════ SCROLL REVEAL ════════════
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+requestAnimationFrame(() => {
+  document.querySelectorAll('.reveal').forEach(el => {
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.95) el.classList.add('in');
+  });
+});
+
+// ════════════ COUNTER ANIMATION ════════════
+function animateCounter(el) {
+  if (el.dataset.counted) return;
+  el.dataset.counted = '1';
+  const target = parseInt(el.dataset.target);
+  const suffix = el.dataset.suffix || '';
+  const duration = 1800;
+  const start = performance.now();
+  requestAnimationFrame(function tick(now) {
+    const elapsed = now - start;
+    const p = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.floor(eased * target) + (p >= 1 ? suffix : '');
+    if (p < 1) requestAnimationFrame(tick);
+  });
+}
+
+const counterIO = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) animateCounter(e.target);
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.counter-num').forEach(el => counterIO.observe(el));
+
+// ════════════ SPOTLIGHT CARDS ════════════
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+    card.style.setProperty('--my', ((e.clientY - r.top)  / r.height * 100) + '%');
+  });
+});
+
+// ════════════ CANVAS PARTICLE NETWORK ════════════
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let pts = [];
+
+function resize() {
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  initParticles();
+}
+
+function initParticles() {
+  pts = [];
+  const count = Math.floor((canvas.width * canvas.height) / 11000);
+  for (let i = 0; i < count; i++) {
+    pts.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.3,
+      vy: (Math.random() - 0.5) * 0.3,
+      r:  Math.random() * 1.4 + 0.5,
+      phase: Math.random() * Math.PI * 2,
+      emerald: Math.random() < 0.15,
+    });
+  }
+}
+
+let t = 0;
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  t += 0.012;
+
+  pts.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < 0 || p.x > canvas.width)  p.vx *= -1;
+    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+  });
+
+  // Connections
+  for (let i = 0; i < pts.length; i++) {
+    for (let j = i + 1; j < pts.length; j++) {
+      const dx = pts[i].x - pts[j].x;
+      const dy = pts[i].y - pts[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 120) {
+        const alpha = (1 - dist / 120) * 0.09;
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(34,211,238,${alpha})`;
+        ctx.lineWidth = 0.5;
+        ctx.moveTo(pts[i].x, pts[i].y);
+        ctx.lineTo(pts[j].x, pts[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Dots with glow
+  pts.forEach(p => {
+    const a = (Math.sin(t + p.phase) * 0.3 + 0.6) * 0.7;
+    const color = p.emerald ? `rgba(16,185,129,${a})` : `rgba(34,211,238,${a})`;
+    const glowColor = p.emerald ? `rgba(16,185,129,${a * 0.6})` : `rgba(34,211,238,${a * 0.6})`;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = glowColor;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  });
+  ctx.shadowBlur = 0;
+
+  requestAnimationFrame(draw);
+}
+
+resize();
+draw();
+window.addEventListener('resize', resize, { passive: true });
+</script>
+
+</body>
+</html>
