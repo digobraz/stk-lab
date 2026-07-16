@@ -79,8 +79,7 @@
     /* ── Navbar ── */
     #nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      padding: 20px 32px;
-      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0;
       transition: background 0.4s ease, padding 0.3s ease, border-color 0.4s ease;
     }
     #nav.solid {
@@ -88,8 +87,10 @@
       backdrop-filter: blur(20px) saturate(1.2);
       -webkit-backdrop-filter: blur(20px) saturate(1.2);
       border-bottom: 1px solid var(--border);
-      padding: 14px 32px;
+      padding: 14px 0;
     }
+    /* nav content reuses .container width → identical edges as body content */
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
     .logo { font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:.1em; color:var(--text-1); text-decoration:none; }
     .logo em { color:var(--accent); font-style:normal; }
     .nav-links { display:flex; align-items:center; gap:36px; list-style:none; }
@@ -181,8 +182,39 @@
     .counter-num { display:inline; }
 
     /* ── Circuit SVG ── */
-    .circuit-wrap { position:absolute; right:0; top:50%; transform:translateY(-50%); width:52%; height:90%; pointer-events:none; opacity:.18; }
+    .circuit-wrap { position:absolute; right:0; top:50%; transform:translateY(-50%); width:52%; height:90%; pointer-events:none; opacity:.12; }
     @media(max-width:900px){ .circuit-wrap{display:none;} }
+
+    /* ── Hero product device ── */
+    .hero-device {
+      position:absolute; right:1.5%; top:52%; transform:translateY(-48%);
+      width:38.25%; max-width:561px; pointer-events:none; z-index:0; opacity:.82;
+      filter:drop-shadow(0 34px 70px rgba(0,0,0,.7)) drop-shadow(0 0 46px rgba(34,211,238,.06));
+      animation:heroFloat 7s ease-in-out infinite;
+    }
+    @keyframes heroFloat { 0%,100%{ transform:translateY(-48%);} 50%{ transform:translateY(-51%);} }
+    @media(max-width:900px){
+      .hero-device{ position:relative; right:auto; top:auto; transform:none; animation:none;
+        width:100%; max-width:520px; margin:44px auto 0; display:block; opacity:.96; }
+    }
+    /* ── BAFRELIO logo mark ── */
+    .logo-lockup { display:flex; align-items:center; gap:11px; text-decoration:none; }
+    .logo-lockup .lw { display:flex; flex-direction:column; line-height:1; }
+    .logo-lockup .lw-name { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; letter-spacing:.16em; color:var(--text-1); }
+    .logo-lockup .lw-sub { font-family:'JetBrains Mono',monospace; font-size:8px; letter-spacing:.34em; color:var(--accent); opacity:.82; margin-top:4px; }
+
+    /* ── Device showcase (rear panel / OBD) ── */
+    .device-showcase { margin:0 0 60px; position:relative; text-align:center; }
+    .device-showcase img { width:100%; max-width:663px; height:auto; display:inline-block;
+      filter:drop-shadow(0 26px 54px rgba(0,0,0,.55)) drop-shadow(0 0 40px rgba(34,211,238,.05)); }
+    .device-cap { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.16em;
+      color:var(--text-muted); margin-top:20px; display:inline-flex; align-items:center; gap:9px; }
+    .device-cap::before, .device-cap::after { content:''; width:16px; height:1px; background:var(--accent); opacity:.6; }
+    .tech-device { margin-top:44px; }
+    .tech-device img { width:100%; max-width:221px; height:auto; display:block;
+      filter:drop-shadow(0 20px 44px rgba(0,0,0,.55)) drop-shadow(0 0 34px rgba(34,211,238,.06)); }
+    .tech-device .device-cap { margin-top:16px; }
+    .tech-device .device-cap::after { display:none; }
 
     /* ── Animated circuit trace ── */
     .trace-flow { stroke-dasharray:12 60; animation:trace-anim 4s linear infinite; }
@@ -218,7 +250,20 @@
 
 <!-- ════════════ NAVBAR ════════════ -->
 <nav id="nav">
-  <a href="#" class="logo">[ STK_LAB ] <em>// R&amp;D DIVISION</em></a>
+ <div class="container nav-inner">
+  <a href="#" class="logo-lockup" aria-label="BAFRELIO — R&amp;D Division">
+    <svg width="30" height="33" viewBox="0 0 76 84" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="38,3 71,23 71,61 38,81 5,61 5,23" fill="none" stroke="#22d3ee" stroke-width="3"/>
+      <polygon points="38,15 60,28 60,56 38,69 16,56 16,28" fill="none" stroke="#10b981" stroke-width="1" opacity=".4"/>
+      <text x="38" y="56" font-family="'Space Grotesk',sans-serif" font-size="40" font-weight="700" fill="#f4f4f5" text-anchor="middle">B</text>
+      <circle cx="38" cy="3" r="2.6" fill="#22d3ee"/>
+      <circle cx="71" cy="61" r="2.6" fill="#10b981"/>
+    </svg>
+    <span class="lw">
+      <span class="lw-name">BAFRELIO</span>
+      <span class="lw-sub">R&amp;D DIVISION</span>
+    </span>
+  </a>
   <div style="display:flex; align-items:center; gap:16px;">
     <ul class="nav-links">
       <li><a href="#research" data-i18n="nav.research">Research</a></li>
@@ -236,6 +281,7 @@
       <button class="lang-btn" onclick="setLang('sk')" id="btn-sk">SK</button>
     </div>
   </div>
+ </div>
 </nav>
 
 
@@ -324,9 +370,12 @@
     </svg>
   </div>
 
+  <!-- Hero product device (over circuit kóty, under dark overlay) -->
+  <img src="img/vros-analyzer.png" alt="VROS GAS 7911 — automotive exhaust gas analyzer" class="hero-device" />
+
   <!-- Radial fade overlay -->
-  <div style="position:absolute; inset:0; background:radial-gradient(ellipse 60% 60% at 70% 45%, transparent 0%, #09090b 68%); pointer-events:none;"></div>
-  <div style="position:absolute; bottom:0; left:0; right:0; height:220px; background:linear-gradient(transparent,#09090b); pointer-events:none;"></div>
+  <div style="position:absolute; inset:0; background:radial-gradient(ellipse 66% 64% at 72% 48%, transparent 0%, rgba(9,9,11,.55) 46%, #09090b 74%); pointer-events:none;"></div>
+  <div style="position:absolute; bottom:0; left:0; right:0; height:260px; background:linear-gradient(transparent,#09090b); pointer-events:none;"></div>
 
   <div class="container" style="position:relative; z-index:1; padding-top:140px; padding-bottom:100px; width:100%;">
 
@@ -448,6 +497,12 @@
       </p>
     </div>
 
+    <!-- Hardware showcase: rear I/O panel -->
+    <figure class="device-showcase reveal d1">
+      <img src="img/vros-rear.png" alt="VROS GAS 7911 — rear I/O and gas interface panel" />
+      <figcaption class="device-cap" data-i18n="ctem.device">VROS GAS 7911 · I/O &amp; GAS INTERFACE PANEL</figcaption>
+    </figure>
+
     <div style="display:flex; flex-direction:column; gap:0;">
       <!-- Block 01 -->
       <div class="reveal ctem-block" style="display:grid; grid-template-columns:200px 1fr; border:1px solid var(--border); border-radius:10px 10px 0 0; overflow:hidden;">
@@ -503,6 +558,10 @@
       <div>
         <span class="label reveal" data-i18n="tech.label">// 03 — Stack</span>
         <h2 class="reveal d1" style="font-size:clamp(2rem,3.5vw,2.8rem); font-weight:600; letter-spacing:-.035em; line-height:1.1;" data-i18n="tech.h2">Technical<br/>Capabilities</h2>
+        <figure class="tech-device reveal d2">
+          <img src="img/vros-obd.png" alt="OBD BT Link — CAN bus telemetry communicator" />
+          <figcaption class="device-cap" data-i18n="tech.device">OBD BT LINK · CAN TELEMETRY</figcaption>
+        </figure>
       </div>
       <div class="tech-2col reveal d1" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
         <div class="tech-item"><span class="pr">&gt;</span> PCB Prototyping &amp; Layout</div>
@@ -583,7 +642,9 @@ const T = {
     'ctem.b2':'We are prototyping an ultra-compact emissions module. We focus on developing our own control PCB and firmware for real-time gas composition data collection — <span style="font-family:\'JetBrains Mono\',monospace;font-size:14px;color:var(--accent);">CO, CO₂, HC, O₂, NOx</span>.',
     'ctem.b3':'We are currently in the <strong style="color:var(--text-1);font-weight:500;">Hardware Prototyping &amp; OEM Component Sourcing</strong> phase. We are actively seeking bare OEM NDIR analyzers of highest precision for integration into our systems.',
     'ctem.active':'Hardware Prototyping active',
+    'ctem.device':'VROS GAS 7911 · I/O &amp; Gas Interface Panel',
     'tech.label':'// 03 — Stack','tech.h2':'Technical<br/>Capabilities',
+    'tech.device':'OBD BT Link · CAN Telemetry',
     'b2b.label':'// 04 — B2B Sourcing &amp; NDA Portal','b2b.h2':'B2B Sourcing<br/>&amp; NDA Portal',
     'b2b.body':'Due to the sensitive nature of our projects and strict non-disclosure agreements (NDA), we do not publicly share detailed technical drawings. For OEM component suppliers and engineering collaboration, please request access.',
     'footer.nda':'All technical data subject to NDA',
@@ -605,7 +666,9 @@ const T = {
     'ctem.b2':'Prototypujeme ultrakompaktný emisný modul. Zameriavame sa na vývoj vlastného riadiaceho PCB a firmvéru pre real-time zber dát o zložení plynov — <span style="font-family:\'JetBrains Mono\',monospace;font-size:14px;color:var(--accent);">CO, CO₂, HC, O₂, NOx</span>.',
     'ctem.b3':'Aktuálne sa nachádzame vo fáze <strong style="color:var(--text-1);font-weight:500;">Hardware Prototyping &amp; OEM Component Sourcing</strong>. Pre náš hardvér integrálne vyhľadávame holé OEM NDIR analyzátory najvyššej presnosti na osadenie do našich systémov.',
     'ctem.active':'Hardware Prototyping aktívne',
+    'ctem.device':'VROS GAS 7911 · I/O a plynové rozhranie',
     'tech.label':'// 03 — Stack','tech.h2':'Technologické<br/>kapacity',
+    'tech.device':'OBD BT Link · CAN telemetria',
     'b2b.label':'// 04 — B2B Sourcing &amp; NDA Portal','b2b.h2':'B2B Sourcing<br/>&amp; NDA Portal',
     'b2b.body':'Vzhľadom na citlivú povahu našich projektov a prísne dohody o mlčanlivosti (NDA) neposkytujeme detailné technické výkresy verejne. Pre dodávateľov OEM komponentov a inžiniersku spoluprácu prosím požiadajte o prístup.',
     'footer.nda':'Všetky technické dáta podliehajú NDA',
